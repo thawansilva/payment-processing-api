@@ -1,0 +1,53 @@
+services:
+  api:
+    build: ./api/
+    image: payment:api
+    container_name: payment-api
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      API_PORT: "${API_PORT}"
+      DB_HOST: "${DB_HOST}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_USER}"
+      DB_PORT: "${DB_PORT}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - api_data:/app
+    networks:
+      payment_network:
+    depends_on:
+      - postgres
+
+  postgres:
+    image: payment:database
+    build: ./database/
+    container_name: payment-postgres
+    restart: on-failure
+    environment:
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_USER}"
+      DB_PORT: "${DB_PORT}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+    networks:
+      payment_network:
+        #volumes:
+        #  - postgres_data:/var/lib/postgresql/data
+
+
+networks:
+  payment_network:
+
+volumes:
+  api_data:
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/Documents/personal_projects/payment-processing-api/api
+
+  postgres_data:
+    #driver_opts:
+    #  type: none
+    #  o: bind
+    #  device: ${HOME}/Documents/personal_projects/payment-processing-api/database/data
