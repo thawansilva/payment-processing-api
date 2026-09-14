@@ -8,19 +8,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    final private AuthService authentication;
+    final private AuthService authService;
 
     @Autowired
-    public AuthController(AuthService authentication) {
-        this.authentication = authentication;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RequestRegisterDto user) {
-        return  ResponseEntity.status(HttpStatus.CREATED).body("Created");
+    public ResponseEntity<String> register(@Valid @RequestBody RequestRegisterDto user) {
+        try {
+            authService.register(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+        return  ResponseEntity.ok("User registered");
     }
 
     @PostMapping("/register/admin")
