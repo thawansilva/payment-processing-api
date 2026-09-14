@@ -26,4 +26,14 @@ public class AuthService {
 		User createdUser = new User(newUser.username(), hashedPassword, "user");
 		userRepo.save(createdUser);
 	}
+
+	public void registerAdmin(@Valid RequestRegisterDto newUser) throws Exception {
+		if (userRepo.existsByUsername(newUser.username())) {
+			throw new Exception("User already exists");
+		}
+		String hashedPassword = passwordEncoder.encode(newUser.password());
+		User createdUser = new User(newUser.username(), hashedPassword, "admin");
+		userRepo.save(createdUser);
+	}
+
 }

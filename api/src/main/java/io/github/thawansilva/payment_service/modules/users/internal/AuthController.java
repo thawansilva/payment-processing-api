@@ -31,8 +31,13 @@ public class AuthController {
     }
 
     @PostMapping("/register/admin")
-    public ResponseEntity<String> registerAdmin(@RequestBody RequestRegisterDto user) {
-        return  ResponseEntity.status(HttpStatus.OK).body("Created");
+    public ResponseEntity<String> registerAdmin(@Valid @RequestBody RequestRegisterDto user) {
+        try {
+            authService.registerAdmin(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+        return ResponseEntity.ok("Admin user created successfully");
     }
 
     @PostMapping("/login")
