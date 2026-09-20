@@ -13,6 +13,9 @@ services:
       DB_USER: "${DB_USER}"
       DB_PORT: "${DB_PORT}"
       DB_PASSWORD: "${DB_PASSWORD}"
+      SECRET_KEY: "${SECRET_KEY}"
+      ACCESS_TOKEN_EXPIRATION: "${ACCESS_TOKEN_EXPIRATION}"
+      REFRESH_TOKEN_EXPIRATION: "${REFRESH_TOKEN_EXPIRATION}"
     volumes:
       - api_data:/app
     networks:

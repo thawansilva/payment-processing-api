@@ -1,10 +1,12 @@
 spring:
   application:
     name: payment-service
+
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -13,3 +15,8 @@ spring:
 
   server:
     port: ${API_PORT}
+
+  jwt:
+    secret-key: "${SECRET_KEY}"
+    expiration-ms: "${ACCESS_TOKEN_EXPIRATION}"
+    refresh-expiration-ms: "${REFRESH_TOKEN_EXPIRATION}"
