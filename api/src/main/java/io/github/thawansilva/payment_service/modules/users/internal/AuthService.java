@@ -1,9 +1,13 @@
 package io.github.thawansilva.payment_service.modules.users.internal;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.github.thawansilva.payment_service.modules.users.api.RequestRegisterDto;
 import jakarta.validation.Valid;
 
 @Service
@@ -36,4 +40,10 @@ public class AuthService {
 		userRepo.save(createdUser);
 	}
 
+	public UUID getIdByUsername(String username) {
+		return userRepo.findByUsername(username)
+			.orElseThrow(() -> new AuthenticationException("Invalid credentials") {
+			})
+			.getId();
+	}
 }
