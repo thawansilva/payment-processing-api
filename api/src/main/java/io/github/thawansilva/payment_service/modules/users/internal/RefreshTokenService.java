@@ -29,7 +29,6 @@ public class RefreshTokenService {
 		return refreshTokenRepo.save(new RefreshToken(refToken, userId, expiresAt));
 	}
 
-
 	@Transactional 
 	public RefreshToken verifyAndGetToken(String token) {
 		RefreshToken refToken = refreshTokenRepo
@@ -47,5 +46,10 @@ public class RefreshTokenService {
 	@Transactional 
 	public void revokeAllByUserId(UUID userId) {
 		refreshTokenRepo.revokeAllByUserId(userId);
+	}
+
+	@Transactional 
+	public void revokeById(UUID id) {
+		refreshTokenRepo.revokeById(id);
 	}
 }

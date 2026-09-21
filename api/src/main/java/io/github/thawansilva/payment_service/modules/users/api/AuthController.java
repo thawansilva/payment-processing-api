@@ -76,8 +76,22 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<String> refresh(@RequestBody RequestRegisterDto user) {
-        return  ResponseEntity.status(HttpStatus.OK).body("Created");
+    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshRequestDto refreshRequest) {
+        RefreshToken refToken = refreshTokenService.verifyAndGetToken(refreshRequest.refreshToken());
+        var user = authService.getUserById(refToken.getUserId());
+        refreshTokenService.revokeById(refToken.getId());
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+            .builder()
+            .username(user.getUsername())
+            .password(user.getPasswordHash())
+            .authorities(user.getRole())
+            .build();
+
+        String accessToken = jwtService.generateToken(userDetails);
+        RefreshToken newRefreshToken = refreshTokenService
+            .generateRefreshToken(user.getId());
+        return  ResponseEntity
+            .ok(new LoginResponse(accessToken, newRefreshToken.getToken()));
     }
 
     @PostMapping("/logout")

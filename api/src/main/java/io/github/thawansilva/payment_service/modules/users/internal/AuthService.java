@@ -1,5 +1,6 @@
 package io.github.thawansilva.payment_service.modules.users.internal;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +46,10 @@ public class AuthService {
 			.orElseThrow(() -> new AuthenticationException("Invalid credentials") {
 			})
 			.getId();
+	}
+
+	public User getUserById(UUID id) {
+		return userRepo.findById(id)
+			.orElseThrow(() -> new NoSuchElementException("User not found"));
 	}
 }
