@@ -3,11 +3,13 @@ package io.github.thawansilva.payment_service.modules.users.api;
 import java.time.Instant;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,6 +27,8 @@ import io.github.thawansilva.payment_service.modules.users.internal.AuthService;
 import io.github.thawansilva.payment_service.modules.users.internal.JwtService;
 import io.github.thawansilva.payment_service.modules.users.internal.RefreshToken;
 import io.github.thawansilva.payment_service.modules.users.internal.RefreshTokenService;
+import io.github.thawansilva.payment_service.modules.users.internal.User;
+import jakarta.servlet.ServletException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTests {
@@ -105,5 +109,60 @@ class AuthControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("access-token"))
                 .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+    }
+
+    @Test
+    void refreshTokenShouldReturnNewTokens() throws Exception {
+        UUID userId = UUID.randomUUID();
+        RefreshToken currentRefreshToken = new RefreshToken(
+                "refresh-token",
+                userId,
+                Instant.now().plusSeconds(240));
+        RefreshToken newRefreshToken = new RefreshToken(
+                "new-refresh-token",
+                userId,
+                Instant.now().plusSeconds(3600));
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
+        when(user.getUsername()).thenReturn("user1");
+        when(user.getPasswordHash()).thenReturn("password-hash");
+        when(user.getRole()).thenReturn("user");
+
+        when(refreshTokenService.verifyAndGetToken("refresh-token")).thenReturn(currentRefreshToken);
+        when(authService.getUserById(userId)).thenReturn(user);
+        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
+        when(refreshTokenService.generateRefreshToken(userId)).thenReturn(newRefreshToken);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"refreshToken\":\"refresh-token\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));
+
+        verify(refreshTokenService).verifyAndGetToken("refresh-token");
+        verify(authService).getUserById(userId);
+        verify(refreshTokenService).revokeById(currentRefreshToken.getId());
+        verify(refreshTokenService).generateRefreshToken(userId);
+    }
+
+    @Test
+    void refreshTokenShouldRejectRevokedToken() {
+        when(refreshTokenService.verifyAndGetToken("revoked-token"))
+                .thenThrow(new IllegalArgumentException("Refresh token revoked"));
+
+        assertThrows(ServletException.class, () -> mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"refreshToken\":\"revoked-token\"}")));
+    }
+
+    @Test
+    void refreshTokenShouldRejectUnknownToken() {
+        when(refreshTokenService.verifyAndGetToken("unknown-token"))
+                .thenThrow(new IllegalArgumentException("Refresh token not found"));
+
+        assertThrows(ServletException.class, () -> mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"refreshToken\":\"unknown-token\"}")));
     }
 }
