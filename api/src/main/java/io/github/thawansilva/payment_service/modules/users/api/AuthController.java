@@ -5,9 +5,11 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,17 +51,18 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        return  ResponseEntity.ok("User registered");
+        return  ResponseEntity.ok("User registered\n");
     }
 
     @PostMapping({"/register/admin", "/register/admin/"})
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<String> registerAdmin(@Valid @RequestBody RequestRegisterDto user) {
         try {
             authService.registerAdmin(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        return ResponseEntity.ok("Admin user created successfully");
+        return ResponseEntity.ok("Admin user created successfully\n");
     }
 
     @PostMapping("/login")
@@ -95,7 +98,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody RequestRegisterDto user) {
-        return  ResponseEntity.status(HttpStatus.OK).body("Created");
+    public ResponseEntity<String> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = authService.getIdByUsername(userDetails.getUsername());
+        refreshTokenService.revokeAllByUserId(userId);
+        return  ResponseEntity.status(HttpStatus.OK).body("User logged out\n");
     }
 }

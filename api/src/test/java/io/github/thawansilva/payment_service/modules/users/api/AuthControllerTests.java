@@ -64,7 +64,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"newuser\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("User registered"));
+                .andExpect(content().string("User registered\n"));
 
         verify(authService).register(any(RequestRegisterDto.class));
     }
@@ -83,7 +83,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"adminuser\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Admin user created successfully"));
+                .andExpect(content().string("Admin user created successfully\n"));
 
         verify(authService).registerAdmin(any(RequestRegisterDto.class));
     }
