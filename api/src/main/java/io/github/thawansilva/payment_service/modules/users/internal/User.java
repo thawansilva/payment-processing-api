@@ -1,7 +1,11 @@
 package io.github.thawansilva.payment_service.modules.users.internal;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,6 +33,7 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
+	@CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -45,8 +50,8 @@ public class User {
         return username;
     }
 
-    public String getRole() {
-        return role;
+    public List<String> getRolesList() {
+        return Arrays.asList(role.split(","));
     }
 
     public String getPasswordHash() {

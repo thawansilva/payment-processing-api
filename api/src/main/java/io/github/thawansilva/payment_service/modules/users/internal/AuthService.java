@@ -8,7 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import io.github.thawansilva.payment_service.modules.users.api.RequestRegisterDto;
+import io.github.thawansilva.payment_service.modules.users.api.RegisterRequestDto;
 import jakarta.validation.Valid;
 
 @Service
@@ -23,27 +23,27 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 	
-	public void register(@Valid RequestRegisterDto newUser) throws Exception {
+	public void register(@Valid RegisterRequestDto newUser) throws Exception {
 		if (userRepo.existsByUsername(newUser.username())) {
 			throw new Exception("User already exists");
 		}
 		String hashedPassword = passwordEncoder.encode(newUser.password());
-		User createdUser = new User(newUser.username(), hashedPassword, "user");
+		User createdUser = new User(newUser.username(), hashedPassword, "USER");
 		userRepo.save(createdUser);
 	}
 
-	public void registerAdmin(@Valid RequestRegisterDto newUser) throws Exception {
+	public void registerAdmin(@Valid RegisterRequestDto newUser) throws Exception {
 		if (userRepo.existsByUsername(newUser.username())) {
 			throw new Exception("User already exists");
 		}
 		String hashedPassword = passwordEncoder.encode(newUser.password());
-		User createdUser = new User(newUser.username(), hashedPassword, "admin");
+		User createdUser = new User(newUser.username(), hashedPassword, "ADMIN");
 		userRepo.save(createdUser);
 	}
 
 	public UUID getIdByUsername(String username) {
 		return userRepo.findByUsername(username)
-			.orElseThrow(() -> new AuthenticationException("Invalid credentials") {
+			.orElseThrow(() -> new AuthenticationException("Invalid Username") {
 			})
 			.getId();
 	}

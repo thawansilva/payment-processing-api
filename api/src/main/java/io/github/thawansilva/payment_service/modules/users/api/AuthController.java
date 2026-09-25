@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,18 +46,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RequestRegisterDto user) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto user) {
         try {
             authService.register(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        return  ResponseEntity.ok("User registered\n");
+        return ResponseEntity.ok("User registered\n");
     }
 
-    @PostMapping({"/register/admin", "/register/admin/"})
-    @PreAuthorize("hasRole('admin')")
-    public ResponseEntity<String> registerAdmin(@Valid @RequestBody RequestRegisterDto user) {
+    @PostMapping({ "/register/admin", "/register/admin/" })
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> registerAdmin(@Valid @RequestBody RegisterRequestDto user) {
         try {
             authService.registerAdmin(user);
         } catch (Exception e) {
@@ -75,7 +76,7 @@ public class AuthController {
         UUID userId = authService.getIdByUsername(userDetails.getUsername());
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(userId);
 
-        return  ResponseEntity.ok(new LoginResponse(accessToken, refreshToken.getToken()));
+        return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken.getToken()));
     }
 
     @PostMapping("/refresh")
@@ -84,10 +85,13 @@ public class AuthController {
         var user = authService.getUserById(refToken.getUserId());
         refreshTokenService.revokeById(refToken.getId());
         UserDetails userDetails = org.springframework.security.core.userdetails.User
-            .builder()
-            .username(user.getUsername())
-            .password(user.getPasswordHash())
-            .authorities(user.getRole())
+                .builder()
+                .username(user.getUsername())
+                .password(user.getPasswordHash())
+                .authorities(user.getRolesList()
+                        .stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .toList())
             .build();
 
         String accessToken = jwtService.generateToken(userDetails);
