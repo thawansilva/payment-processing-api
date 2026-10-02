@@ -1,0 +1,47 @@
+package io.github.thawansilva.payment_service.modules.transactions.api;
+
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionResponse;
+import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionService;
+import io.github.thawansilva.payment_service.modules.users.api.AuthApi;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/v1/transactions")
+public class TransactionController {
+	@Autowired 
+	final private TransactionService transactionService;
+	@Autowired 
+	final private AuthApi authApi;
+
+	public TransactionController(AuthApi authApi,
+			TransactionService transactionService) {
+		this.authApi = authApi;
+		this.transactionService = transactionService;
+	}
+
+	@PostMapping
+	@PreAuthorize("hasRole('USER')")
+	public ResponseEntity<TransactionResponse> createTransaction(@Valid
+			@RequestBody CreateTransactionRequestDto transaction,
+			@RequestHeader(value = "Idempotency-Key", required=true) String key,
+			@AuthenticationPrincipal UserDetails userDetails) {
+		UUID userId = authApi.getIdByUsername(userDetails.getUsername());
+		TransactionResponse response = transactionService
+			.createTransaction(userId, key, transaction);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+}

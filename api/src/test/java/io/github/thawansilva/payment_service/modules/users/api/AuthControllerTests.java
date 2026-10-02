@@ -66,7 +66,7 @@ class AuthControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string("User registered\n"));
 
-        verify(authService).register(any(RequestRegisterDto.class));
+        verify(authService).register(any(RegisterRequestDto.class));
     }
 
     @Test
@@ -85,7 +85,7 @@ class AuthControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Admin user created successfully\n"));
 
-        verify(authService).registerAdmin(any(RequestRegisterDto.class));
+        verify(authService).registerAdmin(any(RegisterRequestDto.class));
     }
 
     @Test
@@ -126,7 +126,7 @@ class AuthControllerTests {
         when(user.getId()).thenReturn(userId);
         when(user.getUsername()).thenReturn("user1");
         when(user.getPasswordHash()).thenReturn("password-hash");
-        when(user.getRole()).thenReturn("user");
+        // when(user.getRolesList()).thenReturn("user");
 
         when(refreshTokenService.verifyAndGetToken("refresh-token")).thenReturn(currentRefreshToken);
         when(authService.getUserById(userId)).thenReturn(user);
