@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.github.thawansilva.payment_service.modules.gateway.api.BankClientApi;
 import io.github.thawansilva.payment_service.modules.transactions.api.CreateTransactionRequestDto;
 import jakarta.transaction.Transactional;
 
@@ -16,12 +17,14 @@ public class TransactionService {
 	final private TransactionRepository transactionRepo;
 	@Autowired
 	final private IdempotencyKeyRepository idempotencyKeyRepo;
+	@Autowired
+	final private BankClientApi bankClientApi;
 
-	public TransactionService(TransactionRepository transactionRepo,
-		IdempotencyKeyRepository idempotencyKeyRepo
-	) {
+	public TransactionService(TransactionRepository transactionRepo, IdempotencyKeyRepository idempotencyKeyRepo,
+			BankClientApi bankClientApi) {
 		this.transactionRepo = transactionRepo;
 		this.idempotencyKeyRepo = idempotencyKeyRepo;
+		this.bankClientApi = bankClientApi;
 	}
 
 	@Transactional
@@ -30,8 +33,7 @@ public class TransactionService {
 		Optional<IdempotencyKey> found = idempotencyKeyRepo.findById(key);
 		if (found.isPresent()) {
 			UUID transactionId = found.get().getTransactionId();
-			System.out.println("Transaction was found, id: " + transactionId);
-			return getTransaction(key, transactionId, false);
+			return getTransaction(accountId, transactionId, false);
 		}
 
 		Transaction transaction = new Transaction(accountId,
@@ -40,22 +42,26 @@ public class TransactionService {
 
 		IdempotencyKey newKey = new IdempotencyKey(key, saved.getId());
 		idempotencyKeyRepo.save(newKey);
+		String confirmation = bankClientApi.chargePayment(accountId);
+		if (confirmation.startsWith("COMPLETED-")) {
+			saved.setTransactionStatus(TransactionStatus.COMPLETED);
+			saved = transactionRepo.save(saved);
+		}
 		return TransactionResponse.from(saved);
 	}
 
-		public TransactionResponse getTransaction(String key, UUID transactionId,
-		Boolean isAdmin) {
+	public TransactionResponse getTransaction(UUID accountId, UUID transactionId,
+			Boolean isAdmin) {
 		Optional<Transaction> transaction;
 		if (isAdmin) {
 			transaction = transactionRepo
-				.findById(transactionId);
-		}
-		else {
+					.findById(transactionId);
+		} else {
 			transaction = transactionRepo
-				.findByIdAndAccountId(transactionId, transactionId);
+					.findByIdAndAccountId(transactionId, accountId);
 		}
 		transaction.orElseThrow(
-			() -> new NoSuchElementException("Transaction not found: " + transactionId));
+				() -> new NoSuchElementException("Transaction not found: " + transactionId));
 		return TransactionResponse.from(transaction.get());
 	}
 }

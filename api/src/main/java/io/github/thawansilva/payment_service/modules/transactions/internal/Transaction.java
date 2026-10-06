@@ -88,4 +88,8 @@ public class Transaction {
 	public Instant getUpdatedAt() {
 		return updatedAt;
 	}
+
+    public void setTransactionStatus(TransactionStatus transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }
 }

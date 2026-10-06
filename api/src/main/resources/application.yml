@@ -11,7 +11,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    # show-sql: true
 
   server:
     port: ${API_PORT}
@@ -20,3 +20,27 @@ spring:
     secret-key: "${SECRET_KEY}"
     expiration-ms: "${ACCESS_TOKEN_EXPIRATION}"
     refresh-expiration-ms: "${REFRESH_TOKEN_EXPIRATION}"
+
+  flyway:
+    enabled: true
+
+  resilience4j:
+    retry:
+      instances:
+        bankGateway:
+          max-attempts: 3
+          wait-duration: 500ms
+          retry-exceptions:
+            - io.github.thawansilva.payment_service.modules.external
+    circuitbreaker:
+      instances:
+        bankGateway:
+          sliding-window-size: 10
+          failure-rate-threshold: 50
+          wait-duration-in-open-state: 10s
+          permitted-number-of-calls-in-half-open-state: 3
+          retry-exceptions:
+            - io.github.thawansilva.payment_service.modules.external
+
+  devtools:
+    add-properties: true
