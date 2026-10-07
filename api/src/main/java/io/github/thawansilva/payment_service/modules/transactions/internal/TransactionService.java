@@ -54,8 +54,7 @@ public class TransactionService {
 			Boolean isAdmin) {
 		Optional<Transaction> transaction;
 		if (isAdmin) {
-			transaction = transactionRepo
-					.findById(transactionId);
+			transaction = transactionRepo.findById(transactionId);
 		} else {
 			transaction = transactionRepo
 					.findByIdAndAccountId(transactionId, accountId);

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,8 +35,8 @@ public class TransactionController {
 		this.transactionService = transactionService;
 	}
 
-	@PostMapping
 	@PreAuthorize("hasRole('USER')")
+	@PostMapping
 	public ResponseEntity<TransactionResponse> createTransaction(@Valid
 			@RequestBody CreateTransactionRequestDto transaction,
 			@RequestHeader(value = "Idempotency-Key", required=true) String key,
@@ -43,5 +45,24 @@ public class TransactionController {
 		TransactionResponse response = transactionService
 			.createTransaction(userId, key, transaction);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+	@GetMapping("/{id}")
+	public ResponseEntity<TransactionResponse> getTransaction(
+			@PathVariable UUID id,
+			@AuthenticationPrincipal UserDetails userDetails) {
+		UUID userId = authApi.getIdByUsername(userDetails.getUsername());
+		boolean isAdmin = userDetails
+			.getAuthorities()
+			.stream()
+			.anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
+		try {
+			TransactionResponse response = transactionService
+				.getTransaction(userId, id, isAdmin);
+			return ResponseEntity.status(HttpStatus.OK).body(response);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 	}
 }
