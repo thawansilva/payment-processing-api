@@ -2,6 +2,7 @@ package io.github.thawansilva.payment_service.modules.users.api;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,15 +10,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import jakarta.servlet.ServletException;
 import io.github.thawansilva.payment_service.modules.gateway.api.BankClientApi;
 import io.github.thawansilva.payment_service.modules.transactions.api.CreateTransactionRequestDto;
 import io.github.thawansilva.payment_service.modules.transactions.api.TransactionController;
@@ -156,8 +159,7 @@ class TransactionControllerTests {
         when(transactionRepository.findByIdAndAccountId(transactionId, userId)).thenReturn(Optional.empty());
         mockMvc = mockMvcWithRealTransactionService();
 
-        assertThrows(ServletException.class,
-                () -> mockMvc.perform(get("/api/v1/transactions/{id}", transactionId)));
+        mockMvc.perform(get("/api/v1/transactions/{id}", transactionId));
 
         verify(transactionRepository).findByIdAndAccountId(transactionId, userId);
         verify(transactionRepository, never()).findById(transactionId);
@@ -185,10 +187,56 @@ class TransactionControllerTests {
         verify(transactionRepository, never()).findByIdAndAccountId(transactionId, adminId);
     }
 
-    private MockMvc mockMvcWithRealTransactionService() {
+    @Test
+    void userCanOnlyGetTheirOwnTransactions() {
+        UUID userId = UUID.randomUUID();
+        Transaction ownTransaction = new Transaction(userId, new BigDecimal("100.00"), "USD");
+        when(authApi.getIdByUsername("alice")).thenReturn(userId);
+        when(transactionRepository.findAllByAccountId(eq(userId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(ownTransaction)));
+
+        var response = controllerWithRealTransactionService().getAllTransactions(
+                PageRequest.of(0, 20),
+                User.withUsername("alice").password("").roles("USER").build());
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(userId, response.getBody().getContent().get(0).userId());
+        verify(transactionRepository).findAllByAccountId(eq(userId), any(Pageable.class));
+        verify(transactionRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void adminCanGetTransactionsFromAllUsers() {
+        UUID adminId = UUID.randomUUID();
+        UUID firstUserId = UUID.randomUUID();
+        UUID secondUserId = UUID.randomUUID();
+        when(authApi.getIdByUsername("admin")).thenReturn(adminId);
+        when(transactionRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(
+                        new Transaction(firstUserId, new BigDecimal("100.00"), "USD"),
+                        new Transaction(secondUserId, new BigDecimal("200.00"), "USD"))));
+
+        var response = controllerWithRealTransactionService().getAllTransactions(
+                PageRequest.of(0, 20),
+                User.withUsername("admin").password("").roles("ADMIN").build());
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(2, response.getBody().getContent().size());
+        assertEquals(firstUserId, response.getBody().getContent().get(0).userId());
+        assertEquals(secondUserId, response.getBody().getContent().get(1).userId());
+        verify(transactionRepository).findAll(any(Pageable.class));
+        verify(transactionRepository, never()).findAllByAccountId(eq(adminId), any(Pageable.class));
+    }
+
+    private TransactionController controllerWithRealTransactionService() {
         TransactionService realTransactionService = new TransactionService(
                 transactionRepository, idempotencyKeyRepository, bankClientApi);
-        TransactionController controller = new TransactionController(authApi, realTransactionService);
+        return new TransactionController(authApi, realTransactionService);
+    }
+
+    private MockMvc mockMvcWithRealTransactionService() {
+        TransactionController controller = controllerWithRealTransactionService();
         return MockMvcBuilders.standaloneSetup(controller)
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();

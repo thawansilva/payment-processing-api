@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import io.github.thawansilva.payment_service.modules.gateway.api.BankClientApi;
@@ -62,5 +64,15 @@ public class TransactionService {
 		transaction.orElseThrow(
 				() -> new NoSuchElementException("Transaction not found: " + transactionId));
 		return TransactionResponse.from(transaction.get());
+	}
+	
+	public Page<TransactionResponse> getAllTransactions(UUID accountId,
+		Boolean isAdmin, Pageable pageable) {
+		if (isAdmin) {
+			return transactionRepo.findAll(pageable)
+				.map(TransactionResponse::from);
+		}
+		return transactionRepo.findAllByAccountId(accountId, pageable)
+				.map(TransactionResponse::from);
 	}
 }

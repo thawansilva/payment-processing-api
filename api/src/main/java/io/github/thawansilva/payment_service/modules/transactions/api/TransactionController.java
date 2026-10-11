@@ -3,6 +3,10 @@ package io.github.thawansilva.payment_service.modules.transactions.api;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -64,5 +68,20 @@ public class TransactionController {
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
+	}
+
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+	@GetMapping()
+	public ResponseEntity<Page<TransactionResponse>> getAllTransactions(
+			@PageableDefault(sort="createdAt", direction= Sort.Direction.DESC)
+			Pageable pageable,
+			@AuthenticationPrincipal UserDetails userDetails) {
+		UUID userId = authApi.getIdByUsername(userDetails.getUsername());
+		boolean isAdmin = userDetails
+			.getAuthorities()
+			.stream()
+			.anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
+		return ResponseEntity
+			.ok(transactionService.getAllTransactions(userId, isAdmin, pageable));
 	}
 }
