@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import io.github.thawansilva.payment_service.modules.exception.api.TransactionNotFound;
 import io.github.thawansilva.payment_service.modules.gateway.api.BankClientApi;
 import io.github.thawansilva.payment_service.modules.transactions.api.CreateTransactionRequestDto;
 import jakarta.transaction.Transactional;
@@ -22,7 +23,8 @@ public class TransactionService {
 	@Autowired
 	final private BankClientApi bankClientApi;
 
-	public TransactionService(TransactionRepository transactionRepo, IdempotencyKeyRepository idempotencyKeyRepo,
+	public TransactionService(TransactionRepository transactionRepo,
+			IdempotencyKeyRepository idempotencyKeyRepo,
 			BankClientApi bankClientApi) {
 		this.transactionRepo = transactionRepo;
 		this.idempotencyKeyRepo = idempotencyKeyRepo;
@@ -39,7 +41,7 @@ public class TransactionService {
 		}
 
 		Transaction transaction = new Transaction(accountId,
-		newTransaction.amount(), newTransaction.currency());
+				newTransaction.amount(), newTransaction.currency());
 		Transaction saved = transactionRepo.save(transaction);
 
 		IdempotencyKey newKey = new IdempotencyKey(key, saved.getId());
@@ -62,15 +64,15 @@ public class TransactionService {
 					.findByIdAndAccountId(transactionId, accountId);
 		}
 		transaction.orElseThrow(
-				() -> new NoSuchElementException("Transaction not found: " + transactionId));
+				() -> new TransactionNotFound(transactionId.toString()));
 		return TransactionResponse.from(transaction.get());
 	}
-	
+
 	public Page<TransactionResponse> getAllTransactions(UUID accountId,
-		Boolean isAdmin, Pageable pageable) {
+			Boolean isAdmin, Pageable pageable) {
 		if (isAdmin) {
 			return transactionRepo.findAll(pageable)
-				.map(TransactionResponse::from);
+					.map(TransactionResponse::from);
 		}
 		return transactionRepo.findAllByAccountId(accountId, pageable)
 				.map(TransactionResponse::from);

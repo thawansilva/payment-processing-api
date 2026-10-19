@@ -41,6 +41,12 @@ spring:
           permitted-number-of-calls-in-half-open-state: 3
           retry-exceptions:
             - io.github.thawansilva.payment_service.modules.external
+    ratelimiter:
+      configs:
+        login:
+          limitForPeriod: 5
+          limitRefreshPeriod: 1m
+          timoutDuration: 0ms
 
   devtools:
     add-properties: true
