@@ -48,22 +48,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto user) {
-        try {
-            authService.register(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        authService.register(user);
         return ResponseEntity.ok("User registered\n");
     }
 
     @PostMapping({ "/register/admin", "/register/admin/" })
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> registerAdmin(@Valid @RequestBody RegisterRequestDto user) {
-        try {
-            authService.registerAdmin(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        authService.registerAdmin(user);
         return ResponseEntity.ok("Admin user created successfully\n");
     }
 

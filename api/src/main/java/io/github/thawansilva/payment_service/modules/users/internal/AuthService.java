@@ -1,6 +1,5 @@
 package io.github.thawansilva.payment_service.modules.users.internal;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 	
-	public void register(@Valid RegisterRequestDto newUser) throws Exception {
+	public void register(@Valid RegisterRequestDto newUser) {
 		if (userRepo.existsByUsername(newUser.username())) {
 			throw new UsernameAlreadyExists(newUser.username());
 		}
@@ -34,7 +33,7 @@ public class AuthService {
 		userRepo.save(createdUser);
 	}
 
-	public void registerAdmin(@Valid RegisterRequestDto newUser) throws Exception {
+	public void registerAdmin(@Valid RegisterRequestDto newUser) {
 		if (userRepo.existsByUsername(newUser.username())) {
 			throw new UsernameAlreadyExists(newUser.username());
 		}

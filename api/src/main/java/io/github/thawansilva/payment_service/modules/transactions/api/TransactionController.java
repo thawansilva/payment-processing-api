@@ -61,13 +61,9 @@ public class TransactionController {
 			.getAuthorities()
 			.stream()
 			.anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
-		try {
 			TransactionResponse response = transactionService
 				.getTransaction(userId, id, isAdmin);
-			return ResponseEntity.status(HttpStatus.OK).body(response);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 
 	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
