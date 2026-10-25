@@ -5,7 +5,7 @@ services:
     container_name: payment-api
     restart: on-failure
     ports:
-      - "8080:8080"
+      - "${API_PORT}:${API_PORT}"
     environment:
       API_PORT: "${API_PORT}"
       DB_HOST: "${DB_HOST}"
