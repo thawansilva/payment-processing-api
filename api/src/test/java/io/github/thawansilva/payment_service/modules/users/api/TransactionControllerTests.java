@@ -43,6 +43,7 @@ import io.github.thawansilva.payment_service.modules.transactions.internal.Trans
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionResponse;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionService;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionStatus;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionControllerTests {
@@ -231,7 +232,7 @@ class TransactionControllerTests {
 
     private TransactionController controllerWithRealTransactionService() {
         TransactionService realTransactionService = new TransactionService(
-                transactionRepository, idempotencyKeyRepository, bankClientApi);
+                transactionRepository, idempotencyKeyRepository, bankClientApi, null, null);
         return new TransactionController(authApi, realTransactionService);
     }
 

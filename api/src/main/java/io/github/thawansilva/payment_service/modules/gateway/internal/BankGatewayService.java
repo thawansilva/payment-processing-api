@@ -29,6 +29,6 @@ public class BankGatewayService {
 	private String fallback(UUID transactionId, Throwable t) {
 		logger.warn("Bank gateway unavailable for transaction {}, reason: {}",
 			transactionId, t.getMessage());
-		return "PENDING-MANUAL-CHECK" + transactionId;
+		return "PENDING-MANUAL-CHECK-" + transactionId;
 	}
 }
