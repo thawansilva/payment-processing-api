@@ -23,10 +23,13 @@ import io.github.thawansilva.payment_service.modules.users.internal.JwtService;
 import io.github.thawansilva.payment_service.modules.users.internal.LoginResponse;
 import io.github.thawansilva.payment_service.modules.users.internal.RefreshToken;
 import io.github.thawansilva.payment_service.modules.users.internal.RefreshTokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Tag(name = "User login and register")
 public class AuthController {
     @Autowired
     final private AuthService authService;
@@ -52,7 +55,7 @@ public class AuthController {
         return ResponseEntity.ok("User registered\n");
     }
 
-    @PostMapping({ "/register/admin", "/register/admin/" })
+    @PostMapping({ "/register/admin" })
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> registerAdmin(@Valid @RequestBody RegisterRequestDto user) {
         authService.registerAdmin(user);
@@ -73,6 +76,7 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken.getToken()));
     }
 
+    @Operation(description="Refresh access token")
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshRequestDto refreshRequest) {
         RefreshToken refToken = refreshTokenService.verifyAndGetToken(refreshRequest.refreshToken());

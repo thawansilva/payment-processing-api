@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import io.github.thawansilva.payment_service.modules.users.internal.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration 
@@ -34,7 +35,10 @@ public class SecurityConfig {
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/v1/auth/**")
+				.requestMatchers("/api/v1/auth/**",
+					"/swagger-ui/**",
+					"/v3/api-docs/**",
+					"/swagger-ui.html")
 				.permitAll()
 				.anyRequest()
 				.authenticated())

@@ -1,4 +1,4 @@
-package io.github.thawansilva.payment_service.configuration;
+package io.github.thawansilva.payment_service.modules.users.internal;
 
 import java.io.IOException;
 
@@ -11,7 +11,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import io.github.thawansilva.payment_service.modules.users.internal.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

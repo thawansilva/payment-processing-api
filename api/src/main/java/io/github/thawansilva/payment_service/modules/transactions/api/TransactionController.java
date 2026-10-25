@@ -23,10 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionResponse;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionService;
 import io.github.thawansilva.payment_service.modules.users.api.AuthApi;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
+@Tag(name = "Transactions operations")
 public class TransactionController {
 	@Autowired 
 	final private TransactionService transactionService;
@@ -41,6 +44,7 @@ public class TransactionController {
 
 	@PreAuthorize("hasRole('USER')")
 	@PostMapping
+	@Operation(description="Create transaction with idempotency key")
 	public ResponseEntity<TransactionResponse> createTransaction(@Valid
 			@RequestBody CreateTransactionRequestDto transaction,
 			@RequestHeader(value = "Idempotency-Key", required=true) String key,

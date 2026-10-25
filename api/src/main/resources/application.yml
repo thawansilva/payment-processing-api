@@ -47,6 +47,11 @@ spring:
           limitForPeriod: 5
           limitRefreshPeriod: 1m
           timoutDuration: 0ms
+  springdoc:
+    api-docs:
+      enabled: false
+    swagger-ui:
+      enabled: false
 
   devtools:
     add-properties: true
