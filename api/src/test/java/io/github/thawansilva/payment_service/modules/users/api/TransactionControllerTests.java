@@ -7,12 +7,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,7 +43,7 @@ import io.github.thawansilva.payment_service.modules.transactions.internal.Trans
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionResponse;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionService;
 import io.github.thawansilva.payment_service.modules.transactions.internal.TransactionStatus;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionControllerTests {
@@ -232,7 +232,7 @@ class TransactionControllerTests {
 
     private TransactionController controllerWithRealTransactionService() {
         TransactionService realTransactionService = new TransactionService(
-                transactionRepository, idempotencyKeyRepository, bankClientApi, null, null);
+                transactionRepository, idempotencyKeyRepository, bankClientApi, null, new SimpleMeterRegistry());
         return new TransactionController(authApi, realTransactionService);
     }
 

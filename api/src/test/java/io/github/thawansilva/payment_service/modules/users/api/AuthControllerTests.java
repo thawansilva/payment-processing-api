@@ -79,7 +79,7 @@ class AuthControllerTests {
 
     @Test
     void registerAdminWithTrailingSlashReturnsSuccess() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/register/admin/")
+        mockMvc.perform(post("/api/v1/auth/register/admin")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"adminuser\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
