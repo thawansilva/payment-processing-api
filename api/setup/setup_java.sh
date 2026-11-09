@@ -10,4 +10,4 @@ java --version
 
 echo "Java installed sucessfully"
 
-sleep infinity
+exec mvn spring-boot:run
