@@ -21,8 +21,7 @@ services:
     networks:
       payment_network:
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
 
   postgres:
     image: payment:database
