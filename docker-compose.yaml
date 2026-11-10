@@ -16,12 +16,13 @@ services:
       SECRET_KEY: "${SECRET_KEY}"
       ACCESS_TOKEN_EXPIRATION: "${ACCESS_TOKEN_EXPIRATION}"
       REFRESH_TOKEN_EXPIRATION: "${REFRESH_TOKEN_EXPIRATION}"
-    volumes:
-      - api_data:/app
+    # volumes: Remove comment for development mode
+    #   - ./api:/app
     networks:
       payment_network:
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: payment:database
@@ -43,12 +44,6 @@ networks:
   payment_network:
 
 volumes:
-  api_data:
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOME}/Documents/personal_projects/payment-processing-api/api
-
   postgres_data:
     #driver_opts:
     #  type: none
