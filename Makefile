@@ -17,6 +17,9 @@ clean: down
 fclean: clean
 	docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans --rmi all
 
+test: all
+	docker exec -i payment-api mvn test
+
 re: fclean all
 
 .PHONY: all volumes build up down clean fclean re
