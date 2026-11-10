@@ -7,7 +7,8 @@ on:
       - master
       - develop
 
-    pull-request:
+  pull-request:
+    branches:
       - main
       - master
       - develop
@@ -15,16 +16,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: api
+
     env:
-      API_PORT: ${{ secrets.api.API_PORT }}
-      DB_PASSWORD: ${{ secrets.api.DB_PASSWORD }}
-      DB_USER: ${{ secrets.api.DB_USER }}
-      SECRET_KEY: ${{ secrets.api.SECRET_KEY }}
-      ACCESS_TOKEN_EXPIRATION: ${{ vars.api.ACCESS_TOKEN_EXPIRATION }}
-      REFRESH_TOKEN_EXPIRATION: ${{ vars.api.REFRESH_TOKEN_EXPIRATION }}
-      DB_HOST: ${{ vars.api.DB_HOST }}
-      DB_NAME: ${{ vars.api.DB_NAME }}
-      DB_PORT: ${{ vars.api.DB_PORT }}
+      API_PORT: ${{ secrets.API_PORT }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_USER: ${{ secrets.DB_USER }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ACCESS_TOKEN_EXPIRATION: ${{ vars.ACCESS_TOKEN_EXPIRATION }}
+      REFRESH_TOKEN_EXPIRATION: ${{ vars.REFRESH_TOKEN_EXPIRATION }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_NAME: ${{ vars.DB_NAME }}
+      DB_PORT: ${{ vars.DB_PORT }}
 
     steps:
       - name: Checkout code
@@ -41,23 +44,22 @@ jobs:
         run: make
   test:
     runs-on: ubuntu-latest
+    environment: api
+
     env:
-      API_PORT: ${{ secrets.api.API_PORT }}
-      DB_PASSWORD: ${{ secrets.api.DB_PASSWORD }}
-      DB_USER: ${{ secrets.api.DB_USER }}
-      SECRET_KEY: ${{ secrets.api.SECRET_KEY }}
-      ACCESS_TOKEN_EXPIRATION: ${{ vars.api.ACCESS_TOKEN_EXPIRATION }}
-      REFRESH_TOKEN_EXPIRATION: ${{ vars.api.REFRESH_TOKEN_EXPIRATION }}
-      DB_HOST: ${{ vars.api.DB_HOST }}
-      DB_NAME: ${{ vars.api.DB_NAME }}
-      DB_PORT: ${{ vars.api.DB_PORT }}
+      API_PORT: ${{ secrets.API_PORT }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_USER: ${{ secrets.DB_USER }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ACCESS_TOKEN_EXPIRATION: ${{ vars.ACCESS_TOKEN_EXPIRATION }}
+      REFRESH_TOKEN_EXPIRATION: ${{ vars.REFRESH_TOKEN_EXPIRATION }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_NAME: ${{ vars.DB_NAME }}
+      DB_PORT: ${{ vars.DB_PORT }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Set up Java 21
         uses: actions/setup-java@v6
