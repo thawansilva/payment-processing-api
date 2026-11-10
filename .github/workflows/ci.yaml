@@ -24,6 +24,7 @@ jobs:
       REFRESH_TOKEN_EXPIRATION: ${{ vars.REFRESH_TOKEN_EXPIRATION }}
       DB_HOST: ${{ vars.DB_HOST }}
       DB_NAME: ${{ vars.DB_NAME }}
+      DB_PORT: ${{ vars.DB_PORT }}
 
     steps:
       - name: Checkout code
